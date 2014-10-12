@@ -1,0 +1,14 @@
+{
+    "name": "api/api",
+    "description": "A rest api.",
+    "authors": [
+        {
+            "name": "Iegor Azuaga",
+            "email": "dextrackmedia@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "slim/slim": "2.*"
+    }
+}
