@@ -8,11 +8,17 @@ require '../vendor/autoload.php';
 $app = new \Slim\Slim();
 
 /*!
+ * Application params
+ */
+$api_key = $user_id = null;
+
+/*!
  * Application routes
  */
 
 # Get
-$app->get('/:route', 'about')->conditions(array('route' => '(|about)'));
+$app->get('/:route', 'showAbout')->conditions(array('route' => '(|about)'));
+$app->get('/users/:id', 'authenticate', 'showUsers');
 
 # Error pages
 $app->notFound(function() {
@@ -30,8 +36,38 @@ $app->error(function (\Exception $e) use ($app) {
 /*!
  * Methods without authentication
  */
-function about() {
+function showAbout() {
 	parse(200, "API RESTful v1");
+}
+
+/*!
+ * Methods with authentication
+ */
+function authenticate() {
+	// Get headers
+	$headers = apache_request_headers();
+
+	// Get instance
+	$app = \Slim\Slim::getInstance();
+
+	$response = array();
+
+	if(isset($headers['Authorization'])) {
+		// Validate the api key
+		global $user_id;
+	}
+	else
+	{
+		$response['status'] = 400;
+		$response['message'] = "The api key is missing";
+
+		parse($response['status'], $response);
+		$app->stop();
+	}
+}
+
+function showUsers($id) {
+	parse(200, array('id' => $id));
 }
 
 /*!
@@ -39,6 +75,7 @@ function about() {
  */
 function parse($status_code, $response) {
 	$app = \Slim\Slim::getInstance();
+
     // Http response code
     $app->status($status_code);
 
