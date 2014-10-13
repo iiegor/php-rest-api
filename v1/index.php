@@ -1,9 +1,10 @@
 <?php
-require_once './handlers/application.php';
-require_once './handlers/database.php';
 require '../vendor/autoload.php';
+require './handlers/lib/rb.php';
+require_once './handlers/database.php';
 
 \Slim\Slim::registerAutoloader();
+\Database\Database::setupDatabase(__DIR__ . '/../config/database.php');
 
 $app = new \Slim\Slim();
 
@@ -34,14 +35,7 @@ $app->error(function (\Exception $e) use ($app) {
 });
 
 /*!
- * Methods without authentication
- */
-function showAbout() {
-	parse(200, "API RESTful v1");
-}
-
-/*!
- * Methods with authentication
+ * Application middlewares
  */
 function authenticate() {
 	// Get headers
@@ -55,6 +49,23 @@ function authenticate() {
 	if(isset($headers['Authorization'])) {
 		// Validate the api key
 		global $user_id;
+		$db = \Database\Database::getInstance();
+
+		$response = $db::getRow('select * from users where api_key = :apiKey limit 1',
+			array(':apiKey'=> $headers['Authorization'])
+		);
+
+		if(!$response) {
+			$response['status'] = 400;
+			$response['message'] = "The api key is invalid";
+
+			parse($response['status'], $response);
+			$app->stop();
+		} else {
+			// Set the user id
+			// On development
+			$user_id = null;
+		}
 	}
 	else
 	{
@@ -66,6 +77,16 @@ function authenticate() {
 	}
 }
 
+/*!
+ * Methods without authentication
+ */
+function showAbout() {
+	parse(200, "API RESTful v1");
+}
+
+/*!
+ * Methods with authentication
+ */
 function showUsers($id) {
 	parse(200, array('id' => $id));
 }

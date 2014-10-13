@@ -1,8 +1,6 @@
 <?php
-class Application {
-	public static function validateKey($key) {}
+namespace Application;
 
-	private function generateKey() {
-		return md5(uniqid(rand(), true));
-	}
+class Application {
+
 }
